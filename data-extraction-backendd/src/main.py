@@ -33,7 +33,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(_db_dir, 'app.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+    except Exception as e:
+        # Harmless race: with multiple gunicorn workers booting at once,
+        # more than one can try to CREATE TABLE at the same moment - the
+        # loser just needs to know the table now exists, not crash.
+        print(f"db.create_all() skipped (likely already applied by another worker): {e}")
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
