@@ -27,7 +27,9 @@ def file_too_large(_e):
     return jsonify({"error": "File exceeds the 10MB limit"}), 413
 
 # uncomment if you need to use database
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
+_db_dir = os.path.join(os.path.dirname(__file__), 'database')
+os.makedirs(_db_dir, exist_ok=True)  # SQLite can't create the file if this folder is missing (e.g. fresh clone/deploy where it wasn't tracked by git)
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(_db_dir, 'app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 with app.app_context():
